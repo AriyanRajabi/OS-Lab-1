@@ -188,6 +188,34 @@ struct {
 
 #define C(x)  ((x)-'@')  // Control-x
 
+
+
+
+void move_pointer(int offset){
+  //printf(1,"back");
+  //cprintf("here");
+  int pos;
+  outb(CRTPORT,14);
+  pos = inb(CRTPORT+1)<<8;
+  outb(CRTPORT,15);
+  pos |= inb(CRTPORT+1);
+  pos = pos + offset;
+  outb(CRTPORT,14);
+  outb(CRTPORT+1,pos>>8);
+  outb(CRTPORT,15);
+  outb(CRTPORT+1,pos);
+  
+} 
+
+void clear(){
+  
+  while(input.e != input.w){
+         
+        input.e--;
+        consputc(BACKSPACE);
+      }
+}
+
 void
 consoleintr(int (*getc)(void))
 {
@@ -213,6 +241,16 @@ consoleintr(int (*getc)(void))
         consputc(BACKSPACE);
       }
       break;
+    case C('B'):
+    
+    move_pointer(-1);
+    break;
+    case C('F'):
+    move_pointer(1);
+    break;
+    case C('L'):
+    clear();
+    break;
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
@@ -259,6 +297,7 @@ consoleread(struct inode *ip, char *dst, int n)
       }
       break;
     }
+
     *dst++ = c;
     --n;
     if(c == '\n')
